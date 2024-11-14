@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 let isConnected = false;
 
 export const connectToDB = async () => {
-
     mongoose.set("strictQuery", true);
     
     if (isConnected){
@@ -11,19 +10,27 @@ export const connectToDB = async () => {
         return;
     }
 
+    if (!process.env.MONGODB_URI) {
+        console.error("MONGODB_URI is not defined in environment variables");
+        throw new Error("Please define MONGODB_URI in environment variables");
+    }
+
     try {
-        console.log('mongoose db connection code is running now ...')
+        console.log('Attempting MongoDB connection...');
+        console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+        // Log first few chars of URI for debugging (don't log full URI for security)
+        console.log('MONGODB_URI starts with:', process.env.MONGODB_URI.substring(0, 20) + '...');
+        
         await mongoose.connect(process.env.MONGODB_URI, {
             dbName: "share_prompt",
             useNewUrlParser: true,
             useUnifiedTopology: true,
         })
-
+        
         isConnected = true;
-        console.log("MongoDB connected.");
-
+        console.log("MongoDB connected successfully");
     } catch(error){
-        console.log(error);
+        console.error("MongoDB connection error:", error);
+        throw error; // Re-throw the error for better error tracking
     }
 }
-
